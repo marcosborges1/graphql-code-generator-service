@@ -1,3 +1,7 @@
+const {
+	jsonToSchema,
+} = require("@walmartlabs/json-to-simple-graphql-schema/lib");
+
 module.exports = {
 	getAllIndexes: function (arr, val) {
 		var indexes = [],
@@ -19,6 +23,27 @@ module.exports = {
 			}
 		});
 		return extratedArrays;
+	},
+	generateSchemaType: (api) => {
+		const { url, name } = api;
+		const schemaName = name + url.split("/")[url.split("/").length - 2];
+		const generatedSchema = jsonToSchema({
+			jsonInput: JSON.stringify(api.parametersOut),
+			baseType: "Result" + schemaName,
+		});
+		return generatedSchema.value;
+	},
+	generateQuery: (api, typeReturn) => {
+		const { url, name, parametersIn } = api;
+		const lastUrlPart = url.split("/")[url.split("/").length - 2];
+		const query = `${name}${lastUrlPart}(${JSON.stringify(
+			parametersIn
+		)}):${typeReturn}`;
+		return query;
+	},
+	extracSchemaType: function (string) {
+		// 5 is type length
+		return string.substring(5, string.indexOf("{"));
 	},
 	removeArrayType: function (array, fieldsTypedArray) {
 		const keyArray = Object.entries(array);

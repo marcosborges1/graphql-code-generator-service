@@ -1,7 +1,11 @@
 const SwaggerParser = require("@apidevtools/swagger-parser");
 const { unflatten } = require("flat");
 const flatten = require("flat");
-
+const {
+	generateSchemaType,
+	extracSchemaType,
+	generateQuery,
+} = require("../../utils");
 const {
 	jsonToSchema,
 } = require("@walmartlabs/json-to-simple-graphql-schema/lib");
@@ -9,31 +13,33 @@ const {
 const resolvers = {
 	Query: {
 		generateGraphQLCode: async (_, { similarities }) => {
-			const schemas = [];
+			const schemas = [],
+				queries = [],
+				resolvers = [];
+
 			similarities.map((similarity) => {
-				const url = similarity.originAPI.url;
-				const urlTarget = similarity.targetAPI.url;
-				const name =
-					similarity.originAPI.name + url.split("/")[url.split("/").length - 2];
-				console.log(name);
-				schemaOrigin = jsonToSchema({
-					jsonInput: JSON.stringify(similarity.originAPI.parametersOut),
-					baseType: "Result" + name,
-				});
-				const nameTarget =
-					similarity.targetAPI.name +
-					urlTarget.split("/")[urlTarget.split("/").length - 2];
-				schemaTarget = jsonToSchema({
-					jsonInput: JSON.stringify(similarity.targetAPI.parametersOut),
-					baseType: "Result" + nameTarget,
-				});
-				schemas.push(schema);
+				const schemaOrigin = generateSchemaType(similarity.originAPI);
+				const schemaTarget = generateSchemaType(similarity.targetAPI);
+
+				const queryOrigin = generateQuery(
+					similarity.originAPI,
+					extracSchemaType(schemaOrigin)
+				);
+				const queryTarget = generateQuery(
+					similarity.targetAPI,
+					extracSchemaType(schemaTarget)
+				);
+
+				schemas.push(schemaOrigin);
 				schemas.push(schemaTarget);
+				queries.push(queryOrigin);
+				queries.push(queryTarget);
 			});
+
 			//Get Resolvers
 			return {
 				schema: schemas,
-				queries: queries,
+				queries: `type Query { ${queries} }`,
 				resolvers: resolvers,
 			};
 		},
