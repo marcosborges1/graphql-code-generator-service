@@ -28,14 +28,14 @@ const resolvers = {
     }, {
       dataSources
     }) => {
-      return dataSources[i].originAPI.url(id);
+      return dataSources.originAPI.url(id);
     }
     TargetAPIPostObjectYByX: async (_, {
       X:String
     }, {
       dataSources
     }) => {
-      return dataSources[i].targetAPI.url(X);
+      return dataSources.targetAPI.url(X);
     }
   },
   ResutOrigin: {
@@ -44,7 +44,7 @@ const resolvers = {
     }, __, {
       dataSources
     }) => {
-        return await dataSources[i].targetAPI.url(X);
+        return await dataSources.targetAPI.url(X);
     }
   }
 }

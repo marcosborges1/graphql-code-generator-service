@@ -5,6 +5,7 @@ const {
 	generateSchemaType,
 	extracSchemaType,
 	generateQuery,
+	generateResolver,
 } = require("../../utils");
 const {
 	jsonToSchema,
@@ -18,7 +19,9 @@ const resolvers = {
 				resolvers = [];
 
 			similarities.map((similarity) => {
-				const schemaOrigin = generateSchemaType(similarity.originAPI);
+				const schemaOrigin = generateSchemaType(similarity.originAPI, {
+					interligation: similarity.targetAPI.name,
+				});
 				const schemaTarget = generateSchemaType(similarity.targetAPI);
 
 				const queryOrigin = generateQuery(
@@ -30,17 +33,30 @@ const resolvers = {
 					extracSchemaType(schemaTarget)
 				);
 
+				const resolverOrigin = generateResolver(
+					similarity.originAPI,
+					extracSchemaType(schemaOrigin)
+				);
+				const resolverTarget = generateResolver(
+					similarity.targetAPI,
+					extracSchemaType(schemaTarget)
+				);
+
+				// const interligationResolver = generateInterligationResolver();
+
 				schemas.push(schemaOrigin);
 				schemas.push(schemaTarget);
 				queries.push(queryOrigin);
 				queries.push(queryTarget);
+				resolvers.push(resolverOrigin);
+				resolvers.push(resolverTarget);
 			});
 
 			//Get Resolvers
 			return {
 				schema: schemas,
 				queries: `type Query { ${queries} }`,
-				resolvers: resolvers,
+				resolvers: `Query: { ${resolvers} } `,
 			};
 		},
 	},
